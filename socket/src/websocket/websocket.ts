@@ -1,34 +1,39 @@
-import { Application } from 'express';
+
+import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
+import MySocketInterface from './mySocketInterface';
 
 const WEBSOCKET_CORS = {
-  origin: "*",
-  methods: ["GET", "POST"]
-}
+  origin: '*',
+  methods: ['GET', 'POST']
+};
+
 
 class Websocket extends Server {
 
   private static io: Websocket;
 
-  constructor(httpServer: any) {
+  constructor(httpServer: HttpServer) {
     super(httpServer, {
-      cors: WEBSOCKET_CORS
+      cors: WEBSOCKET_CORS,
+      addTrailingSlash: false,
+      maxHttpBufferSize: 1e7 // 10 MB
     });
   }
 
-  public static getInstance(httpServer?: any): Websocket {
+  public static getInstance(httpServer?: HttpServer): Websocket {
 
     if (!Websocket.io) {
-      Websocket.io = new Websocket(httpServer);
+      Websocket.io = new Websocket(httpServer!);
     }
 
     return Websocket.io;
 
   }
 
-  public initializeHandlers(socketHandlers: Array<any>) {
+  public initializeHandlers(socketHandlers: Array<{ path: string, handler: MySocketInterface }>) {
     socketHandlers.forEach(element => {
-      let namespace = Websocket.io.of(element.path, (socket: Socket) => {
+      const namespace = Websocket.io.of(element.path, (socket: Socket) => {
         element.handler.handleConnection(socket);
       });
 

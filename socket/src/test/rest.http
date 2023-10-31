@@ -1,0 +1,13 @@
+POST http://localhost:3001/v1/gifs HTTP/1.1
+my-header: test header
+
+{
+   "id": "4",
+   "date": "2021-11-05",
+   "total": "$13.00",
+   "status": "Pending"
+}
+
+###
+
+GET http://localhost:3001/v1/gifs HTTP/1.1

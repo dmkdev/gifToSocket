@@ -1,13 +1,14 @@
-import { JsonController, Post, Body } from "routing-controllers";
-import GifsService from "../services/gif.service";
+import { JsonController, Get } from 'routing-controllers';
+import GifService from '../services/gif.service';
 
 @JsonController('/gifs', { transformResponse: true })
 class GifsController {
 
-  @Post('/')
-  insertGif(@Body() gif: any) {
-    let gifService = new GifsService();
-    gifService.insertGif(gif);
+  @Get('/')
+  retrieveGifs() {
+    const gifService = new GifService();
+
+    gifService.getAllGifs();
 
     return {
       status: 200,

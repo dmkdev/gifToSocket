@@ -1,47 +1,57 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import styles from './page.module.css'
-import io, { Socket } from 'socket.io-client'
-let socket: Socket
+import React, { useEffect, useState } from 'react';
+import { ConnectionState } from '@/shared/ui/ConnectionState';
+import { ConnectionManager } from '@/shared/ui/ConnectionManager';
+import { socket } from '@/shared/socket';
+import FrameViewer, { IGifFrame } from '@/widgets/FrameViewer';
+
 
 export default function Home() {
-  const [input, setInput] = useState('');
+  const [isConnected, setIsConnected] = useState(socket.connected);
+  const [data, setData] = useState<IGifFrame>();
+  const [allGifs, setAllGifs] = useState<{id: number, name: string}[]>([]);
 
   useEffect(() => {
-    const initializeSocket = async () => {
-      await socketInitializer();
-    };
+    function onConnect() {
+      setIsConnected(true);
+    }
 
-    initializeSocket();
-  }, []);
+    function onDisconnect() {
+      setIsConnected(false);
+    }
 
-
-  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setInput(value);
-    socket.emit('input-change', value);
-  };
-
-  const socketInitializer = async () => {
-    await fetch('/api/socket')
-    socket = io()
-
-    socket.on('connect', () => {
-      console.log('connected')
-    })
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('allgifs', setAllGifs);
+    socket.on('frame', setData);
 
     return () => {
-      socket.close();
-    }
-  }
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('allgifs', setAllGifs);
+      socket.off('frame', setData);
+    };
+  }, []);
+
+  const onNextClick = () => {
+    socket.emit('next');
+  };
+
+  const onChangeGif = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    socket.emit('gif', e.target.value);
+  };
 
   return (
-    <main className={styles.main}>
-      <h1 className={styles.title}>
-        Welcome to <a href="">GIF online converter</a>
-      </h1>
-      <input className={styles.input} onChange={onChangeHandler} />
-    </main>
-  )
+    <div className="App">
+      <ConnectionState isConnected={isConnected} />
+      <ConnectionManager />
+      <select onChange={onChangeGif}>
+        {allGifs.map(gif => (
+          <option key={gif.id} value={gif.id}>{gif.name}</option>
+        ))}
+      </select>
+      <FrameViewer data={data} onNext={onNextClick} />
+    </div>
+  );
 }
