@@ -15,29 +15,35 @@ class GifService {
 
   public async setCurrentGif(id: number) {
     this.#currentGif = gifs.find(gif => gif.id == id);
+
+    if (!this.#currentGif) {
+      return;
+    }
+
     this.clearFrames();
-    await this.loadFrames();
-    this.getFrames();
+    try {
+      this.#frames = await this.loadFrames(this.#currentGif);
+      this.getFrames();
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   private clearFrames() {
     this.#frames.clear();
   }
 
-  private async loadFrames() {
-    if (!this.#currentGif) {
-      return;
-    }
-    
+  private async loadFrames(currGif: Gif): Promise<FramesList> {
     return new Promise((resolve) => {
-      readFile(__dirname + `/../data/${this.#currentGif!.path}`, async (err, buffer) => {
+      readFile(__dirname + `/../data/${currGif.path}`, async (err, buffer) => {
         if (err) throw err;
-  
+
         const frames = await decodeFrames(buffer);
+        const frameList = new FramesList();
         frames.forEach(frame => {
-          this.#frames.append(frame);
+          frameList.append(frame);
         });
-        resolve(true);
+        resolve(frameList);
       });
     });
   }
@@ -76,7 +82,7 @@ class GifService {
       this.#frame = this.#frame.next;
       io.of('/gifs').emit('frame', this.#frame.val);
     }
-    
+
   }
 }
 

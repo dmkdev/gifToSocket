@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { ConnectionState } from '@/shared/ui/ConnectionState';
 import { ConnectionManager } from '@/shared/ui/ConnectionManager';
 import { socket } from '@/shared/socket';
-import FrameViewer, { IGifFrame } from '@/widgets/FrameViewer';
-
+import FrameViewer from '@/widgets/FrameViewer';
+import { IGifFrame } from '@/shared/types';
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(socket.connected);
