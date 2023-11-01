@@ -1,10 +1,5 @@
+import { IGifFrame } from '@/shared/types';
 import React, { useEffect, useRef } from 'react';
-
-export interface IGifFrame { 
-  imageData: ArrayBuffer,
-  width: number, 
-  height: number
-}
 
 interface FrameViewerProps {
   data?: IGifFrame,
